@@ -1,0 +1,45 @@
+{
+    "prefix": "M500",
+    "dataset": "cifar100",
+    "lt_imb_factor": 0,
+    "memory_size": 500,
+    "fixed_memory": false,
+    "shuffle": true,
+    "init_cls": 10,
+    "increment": 10,
+    "model_name": "upcl",
+    "convnet_type": "resnet18",
+    "init_epoch": 200,
+    "init_lr": 0.1,
+    "init_milestones": [
+        60,
+        120,
+        170
+    ],
+    "init_lr_decay": 0.1,
+    "init_weight_decay": 0.0005,
+    "epochs": 170,
+    "lrate": 0.1,
+    "milestones": [
+        80,
+        120,
+        150
+    ],
+    "lrate_decay": 0.1,
+    "batch_size": 256,
+    "max_nb_classes": 100,
+    "weight_decay": 0.0002,
+    "num_workers": 8,
+    "device": [
+        "6"
+    ],
+    "seed": [
+        1993
+    ],
+    "kd_lambda": 1,
+    "kd_loss_type": "fkd",
+    "temperature": 0.07,
+    "dyn_margin_tro": 1.0,
+    "use_norm_feature": true,
+    "save_test": false
+}
