@@ -8,16 +8,12 @@ import torch
 from torch import nn
 from torch import optim
 from torch.nn import functional as F
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from convs.linears import SimpleLinear
 from models.base import BaseLearner
 from models.icarl import iCaRL
-from models.memo import MEMO
-from models.der import DER
-from utils.inc_net import AdaptiveNet, DERNet, IncrementalNet, SimpleCosineIncrementalNet, get_convnet
-from utils.toolkit import count_parameters, tensor2numpy, check_loss, loss_counter
+from utils.inc_net import IncrementalNet, SimpleCosineIncrementalNet
+from utils.toolkit import tensor2numpy, check_loss, loss_counter
 
 EPSILON = 1e-8
 
@@ -270,21 +266,9 @@ class UPCL(BaseLearner):
                 fea_log_prob = F.normalize(fea_logit.exp(), dim=1, p=1).log()
                 fea_mask = torch.eq(targets.unsqueeze(0), targets.unsqueeze(1))
 
-                k = min(fea_mask.sum(0).min(), self.k)
-                if self._cur_task > 0 and k > 0:
-                    fea_mask2 = torch.zeros_like(fea_mask)
-                    for i in range(fea_mask2.shape[0]):
-                        true_indices = torch.where(fea_mask[i])[0]
-                        true_indices = true_indices[true_indices != i]
-                        perm = torch.randperm(true_indices.size(0))
-                        selected_indices = true_indices[perm[:6]]
-                        fea_mask2[i, selected_indices] = 1
-                else:
-                    fea_mask2 = fea_mask
-
                 proto_loss = -torch.sum((cls_mask * cls_log_prob).sum(1) /
                                         cls_mask.sum(1)) / cls_mask.shape[0]
-                feat_loss = -torch.sum((fea_mask2 * fea_log_prob).sum(1) /
+                feat_loss = -torch.sum((fea_mask * fea_log_prob).sum(1) /
                                        fea_mask.sum(1)) / fea_mask.shape[0]
 
                 if epoch > 50 or not self.online_match:

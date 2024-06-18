@@ -31,7 +31,7 @@
     "weight_decay": 0.0002,
     "num_workers": 8,
     "device": [
-        "6"
+        "0"
     ],
     "seed": [
         1993
