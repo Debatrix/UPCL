@@ -88,9 +88,9 @@ class iImageNet1000(iData):
     class_order = np.arange(1000).tolist()
 
     def download_data(self):
-        assert 0, "You should specify the folder of your dataset"
-        train_dir = "[DATA-PATH]/train/"
-        test_dir = "[DATA-PATH]/val/"
+        # assert 0, "You should specify the folder of your dataset"
+        train_dir = "data/imagenet1k/train/"
+        test_dir = "data/imagenet1k/val/"
 
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)

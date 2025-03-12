@@ -347,13 +347,20 @@ class UPCL_IncrementalNet(IncrementalNet):
         self.task_sizes = []
         self.use_norm_feature = args.get('use_norm_feature', True)
         self.global_class_match = args.get('global_class_match', False)
+        feature_dim = args.get('feature_dim', -1)
+
+        if feature_dim != self.feature_dim and feature_dim > 0:
+            self.projector = nn.Linear(self.feature_dim, feature_dim)
+            self.out_dim = feature_dim
+        else:
+            self.projector = nn.Identity()
+            self.out_dim = self.feature_dim
 
     def forward(self, x, label=None):
         x = self.convnet(x)
+        features = self.projector(x['features'])
         if self.use_norm_feature:
-            features = F.normalize(x['features'], p=2, dim=1)
-        else:
-            features = x['features']
+            features = F.normalize(features, p=2, dim=1)
         out = self.fc(features, label)
 
         if hasattr(self, "gradcam") and self.gradcam:
@@ -365,7 +372,7 @@ class UPCL_IncrementalNet(IncrementalNet):
         return out
 
     def update_fc(self, nb_classes):
-        self.fc = self.generate_fc(self.feature_dim, nb_classes)
+        self.fc = self.generate_fc(self.out_dim, nb_classes)
 
         new_task_size = nb_classes - sum(self.task_sizes)
         self.task_sizes.append(new_task_size)

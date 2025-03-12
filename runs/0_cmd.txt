@@ -1,0 +1,12 @@
+python main.py --config=runs/upcl_cifar100_5_M2000_2.json;
+
+python main.py --config=runs/upcl_cifar100_5_M2000.json;
+
+python main.py --config=runs/upcl_tinyimagenet_B100I5_M2000.json;
+
+python main.py --config=runs/upcl_cifar100_resnet18_128d.json;python main.py --config=runs/upcl_cifar100_resnet32.json;python main.py --config=runs/upcl_cifar100_resnet32_128d.json;
+
+python main.py --config=runs/fixed_upcl_cifar100_B0I5_M2000.json;
+python main.py --config=runs/fixed_upcl_cifar100_B0I10_M2000.json;
+python main.py --config=runs/upcl_imagenet100_B50I10_M2000.json;
+
