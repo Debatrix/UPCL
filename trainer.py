@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import torch
 from utils import factory
-from utils.confusion_matrix import plot_confusion_matrix
+# from utils.confusion_matrix import plot_confusion_matrix
 from utils.data_manager import DataManager
 from utils.toolkit import count_parameters
 
@@ -62,7 +62,8 @@ def _train(args):
                                    args["seed"],
                                    args["init_cls"],
                                    args["increment"],
-                                   lt_imb_factor=args.get('lt_imb_factor', 0),
+                                   imb_factor=args.get('imb_factor', 0.01),
+                                   lt=args.get('lt', False),
                                    debug=args["debug"])
         model = factory.get_model(args["model_name"], args)
 
@@ -125,11 +126,11 @@ def _train(args):
             with open(log_file_path + '.json', 'a') as f:
                 f.write(json.dumps(result) + '\n')
 
-            if args.get('save_confusion_matrix',True):
-                plot_confusion_matrix(cnn_accy["cm"], log_file_path + '.pdf',
-                                  args["increment"])
-            if args.get('save_test',False):
-                torch.save(cnn_accy,f'{log_file_path}_{task}.pth')
+            # if args.get('save_confusion_matrix', True):
+            #     plot_confusion_matrix(cnn_accy["cm"], log_file_path + '.pdf',
+            #                           args["increment"])
+            if args.get('save_test', False):
+                torch.save(cnn_accy, f'{log_file_path}_{task}.pth')
 
     except Exception as e:
         logging.exception(e)

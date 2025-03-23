@@ -1,28 +1,34 @@
 import logging
 from collections import Counter
-from re import S
 
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000, iTinyImageNet
+from utils.data import iCIFAR10, iCIFAR100, iCUB200, iImageNet100, iImageNet1000, iStanfordCars, iTinyImageNet, iFood101
 
 debug_data_num = 1024
 
 
 class DataManager(object):
 
-    def __init__(self,
-                 dataset_name,
-                 shuffle,
-                 seed,
-                 init_cls,
-                 increment,
-                 lt_imb_factor=0,
-                 debug=False):
+    def __init__(
+            self,
+            dataset_name,
+            shuffle,
+            seed,
+            init_cls,
+            increment,
+            imb_type='exp',  # 新增长尾参数
+            imb_factor=0.01,  # 新增不平衡因子
+            lt=False,  # 是否启用长尾
+            ltio=False,  # 是否仅限长尾输入输出
+            debug=False):
         self.dataset_name = dataset_name
-        self.lt_imb_factor = lt_imb_factor  # Long-tail
+        self.imb_type = imb_type
+        self.imb_factor = imb_factor
+        self.lt = lt
+        self.ltio = ltio
         self._setup_data(dataset_name, shuffle, seed)
         assert init_cls <= len(self._class_order), "No enough classes."
         self._increments = [init_cls]
@@ -281,26 +287,30 @@ class DataManager(object):
         self._test_targets = _map_new_class_index(self._test_targets,
                                                   self._class_order)
 
-        # Long-tail setting
-        if 0 < self.lt_imb_factor < 1:
-            _train_targets_counter = Counter(self._train_targets)
-            img_max = _train_targets_counter.most_common()[0][1]
-            cls_num = len(_train_targets_counter)
-            img_num_per_cls = [
-                int(img_max * (self.lt_imb_factor**(i / (cls_num - 1.0))))
-                for i in range(cls_num)
-            ]
-            lt_order = np.random.permutation(cls_num).tolist()
-            lt_train_targets, lt_train_data = [], []
-            for idx, l in enumerate(lt_order):
-                lt_train_data.extend(self._train_data[self._train_targets == l]
-                                     [:img_num_per_cls[idx]])
-                lt_train_targets.extend(self._train_targets[
-                    self._train_targets == l][:img_num_per_cls[idx]])
+        # 添加长尾处理逻辑
+        if self.lt:
+            # 统计原始类别分布
+            num_per_cls = np.zeros(len(self._class_order))
+            for label in self._train_targets:
+                num_per_cls[label] += 1
 
-            self._train_data = np.array(lt_train_data)
-            self._train_targets = np.array(lt_train_targets)
-            logging.info(dict(Counter(self._train_targets)))
+            # 生成长尾分布
+            img_num_per_cls = get_img_num_per_cls(num_per_cls, self.imb_type,
+                                                  self.imb_factor)
+
+            # 重组训练数据
+            new_data, new_targets = [], []
+            for class_idx in self._class_order:
+                idxes = np.where(self._train_targets == class_idx)[0]
+                np.random.shuffle(idxes)
+                selec_idxes = idxes[:img_num_per_cls[class_idx]]
+                new_data.append(self._train_data[selec_idxes])
+                new_targets.append(self._train_targets[selec_idxes])
+
+            self._train_data = np.concatenate(new_data)
+            self._train_targets = np.concatenate(new_targets)
+            logging.info(
+                f"Created long-tailed dataset with factor {self.imb_factor}")
 
     def _select(self, x, y, low_range, high_range):
         idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
@@ -371,6 +381,12 @@ def _get_idata(dataset_name):
         return iImageNet100()
     elif name == "tinyimagenet":
         return iTinyImageNet()
+    elif name == "food101":
+        return iFood101()
+    elif name == "cub200":
+        return iCUB200()
+    elif name == "stanfordcars":
+        return iStanfordCars()
     else:
         raise NotImplementedError("Unknown dataset {}.".format(dataset_name))
 
@@ -413,3 +429,27 @@ def default_loader(path):
         return accimage_loader(path)
     else:
         return pil_loader(path)
+
+
+def get_img_num_per_cls(num_per_cls, imb_type, imb_factor=0.01):
+    img_max = num_per_cls[0]
+    img_num_per_cls = []
+    if imb_type == 'exp':
+        for cls_idx in range(len(num_per_cls)):
+            num = img_max * (imb_factor**(cls_idx / (len(num_per_cls) - 1.0)))
+            img_num_per_cls.append(int(num))
+    elif imb_type == 'step':
+        for cls_idx in range(len(num_per_cls) // 2):
+            img_num_per_cls.append(int(img_max))
+        for cls_idx in range(len(num_per_cls) // 2):
+            img_num_per_cls.append(int(img_max * imb_factor))
+    elif imb_type == 'fewshot':
+        for cls_idx in range(len(num_per_cls)):
+            if cls_idx < 50:
+                num = img_max
+            else:
+                num = img_max * 0.01
+            img_num_per_cls.append(int(num))
+    else:
+        img_num_per_cls.extend([int(img_max)] * len(num_per_cls))
+    return img_num_per_cls

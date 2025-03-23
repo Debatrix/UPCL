@@ -16,7 +16,7 @@
             "args": [
                 "--config",
                 "runs/debug.json",
-                // "--debug"
+                "--debug"
             ],
             "justMyCode": true
         },

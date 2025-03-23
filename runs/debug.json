@@ -1,15 +1,15 @@
 {
-    "prefix": "M2000",
-    "dataset": "cifar100",
+    "prefix": "LT_FM",
+    "dataset": "stanfordcars",
     "lt_imb_factor": 0,
     "memory_size": 2000,
-    "fixed_memory": false,
+    "fixed_memory": true,
     "shuffle": true,
-    "init_cls": 100,
-    "increment": 100,
+    "init_cls": 5,
+    "increment": 5,
+    "lt": true,
     "model_name": "upcl",
-    "convnet_type": "resnet32",
-    "feature_dim": 128,
+    "convnet_type": "resnet18",
     "init_epoch": 200,
     "init_lr": 0.1,
     "init_milestones": [
@@ -27,20 +27,21 @@
         150
     ],
     "lrate_decay": 0.1,
-    "batch_size": 256,
+    "batch_size": 128,
     "max_nb_classes": 100,
     "weight_decay": 0.0002,
     "num_workers": 8,
     "device": [
-        "3"
+        "1"
     ],
     "seed": [
-        2024
+        1993
     ],
     "kd_lambda": 1,
     "kd_loss_type": "fkd",
     "temperature": 0.07,
     "dyn_margin_tro": 1.0,
     "use_norm_feature": true,
-    "save_test": false
+    "save_test": false,
+    "memory_per_class": 20
 }

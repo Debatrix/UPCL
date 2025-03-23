@@ -5,14 +5,15 @@ import os.path as osp
 
 os.chdir('..')
 # %%
-model = [
-    'upcl',
+model = ['upcl', 'icarl', 'wa', 'nccil']
+inc = [10, 5, 20]
+dataset = [
+    # 'cub200',
+    'food101'
 ]
-inc = [5,10,20]
-dataset = ['cifar100',]
 
-device = ["3"]
-seed = [2024, 2023, 1993]
+device = ["2"]
+seed = [1993]
 mem = 2000
 # %%
 cmd = ''
@@ -23,8 +24,11 @@ for m in model:
     with open(osp.join('exps', m + '.json'), 'r') as f:
         exp = json.load(f)
 
+    exp['prefix'] = f''
     exp['memory_size'] = mem
-    exp['prefix'] = f'fixed'
+    # exp['lt'] = True
+    # exp['fixed_memory'] = True
+    # exp['memory_per_class'] = 20
     exp['device'] = device
     exp['seed'] = seed
     exp['lt_imb_factor'] = 0
@@ -32,9 +36,9 @@ for m in model:
         exp['dataset'] = d
         for i in inc:
             exp['increment'] = i
-            exp['init_cls'] = 50
+            exp['init_cls'] = i
 
-            name = f'fixed_{m}_{d}_B0I{i}_M{mem}.json'
+            name = f'{m}_{d}_B{exp["init_cls"]}I{i}_M{mem}.json'
             # if osp.exists(osp.join('logs', m, d, f'0_{i}')):
             #     print(f'{name} exist, pass!')
             #     continue

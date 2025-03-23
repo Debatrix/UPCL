@@ -25,7 +25,7 @@
         150
     ],
     "lrate_decay": 0.1,
-    "batch_size": 64,
+    "batch_size": 128,
     "max_nb_classes": 100,
     "weight_decay": 0.0002,
     "num_workers": 8,

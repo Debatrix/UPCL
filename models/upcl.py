@@ -244,6 +244,8 @@ class UPCL(BaseLearner):
         prog_bar = tqdm(range(epochs_num))
         best_test_acc, best_epoch, best_network = -100, -1, None
         for _, epoch in enumerate(prog_bar):
+            if self.args['debug'] and epoch > 2:
+                break
             self.setup_network()
             epoch_loss = loss_counter()
             correct, total = 0, 0
@@ -518,6 +520,8 @@ class CosineBaseline(BaseLearner):
         prog_bar = tqdm(range(epochs_num))
         best_test_acc, best_epoch, best_network = -100, -1, None
         for _, epoch in enumerate(prog_bar):
+            if self.args['debug'] and epoch > 2:
+                break
             self.setup_network()
             epoch_loss = loss_counter()
             correct, total = 0, 0
